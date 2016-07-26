@@ -96,6 +96,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         Paint mTimeTextPaint;
         Paint mDateTextPaint;
         Paint mLinePaint;
+        Paint mHighTempTextPaint;
+        Paint mLowTempTextPaint;
         boolean mAmbient;
         Time mTime;
         final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
@@ -113,6 +115,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         float mDateYOffset;
         float mLineXStart, mLineXEnd;
         float mLineYOffset;
+        float mHighTempXOffset;
+        float mLowTempXOffset;
+        float mTemperatureYOffset;
 
         /**
          * Whether the display supports fewer bits for each color in ambient mode. When true, we
@@ -146,6 +151,10 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             mLinePaint = createLinePaint();
 
+            mHighTempTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
+//            mHighTempTextPaint.setTextAlign(Paint.Align.LEFT);
+            mLowTempTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
+//            mLowTempTextPaint.setTextAlign(Paint.Align.LEFT);
             mTime = new Time();
         }
 
@@ -216,6 +225,10 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             mLineXStart = centerX - 30;
             mLineXEnd = centerX + 30;
+
+            // We only set the x offset of the high temperature text now.
+            // The offset for low temp is computed in onApplyWindowInsets as it depends on the text size.
+            mHighTempXOffset = centerX - 30;
         }
 
         @Override
@@ -233,6 +246,25 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             float dateTextSize = resources.getDimension(isRound
                     ? R.dimen.date_text_size_round : R.dimen.date_text_size);
             mDateTextPaint.setTextSize(dateTextSize);
+
+            float temperatureTextSize = resources.getDimension(isRound
+                    ? R.dimen.temperature_text_size_round : R.dimen.temperature_text_size);
+            mHighTempTextPaint.setTextSize(temperatureTextSize);
+//            Log.d("SunshineWF", "High temp textsize set");
+            mLowTempTextPaint.setTextSize(temperatureTextSize);
+
+            // The x-offset of the low temperature text should be calculated relative to the
+            // high temperature text. For this we need to compute the max width that the high temp box can grow to.
+            Rect highTempBounds = new Rect();
+            final char[] chars = {'-', '2', '0', 'º'};
+            mHighTempTextPaint.getTextBounds(chars, 0, chars.length, highTempBounds);
+
+            mLowTempXOffset = mHighTempXOffset + highTempBounds.right + 5;
+//            Log.d("SunshineWF", "LowX - " + String.valueOf(mLowTempXOffset));
+
+            // Set the y offset for the temperature texts.
+            // Y offset for texts corresponds to the baseline so we need to take the height into account as well.
+            mTemperatureYOffset = mLineYOffset + (highTempBounds.bottom-highTempBounds.top) + 30;
         }
 
         @Override
@@ -309,6 +341,10 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             // Draw line
             canvas.drawLine(mLineXStart, mLineYOffset, mLineXEnd, mLineYOffset, mLinePaint);
+
+            // Draw high and low temp
+            canvas.drawText("-20º", mHighTempXOffset, mTemperatureYOffset, mHighTempTextPaint);
+            canvas.drawText("15º", mLowTempXOffset, mTemperatureYOffset, mLowTempTextPaint);
         }
 
         /**
