@@ -33,6 +33,7 @@ import android.view.View;
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.gcm.RegistrationIntentService;
 import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
+import com.example.android.sunshine.app.wearable.WearableIntentService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 
@@ -107,6 +108,14 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
                 startService(intent);
             }
         }
+
+        // TODO: For testing purposes. Remove this once watchface is ready.
+        updateWearable();
+    }
+
+    private void updateWearable() {
+        startService(new Intent(SunshineSyncAdapter.ACTION_DATA_UPDATED)
+                .setClass(this, WearableIntentService.class));
     }
 
     @Override

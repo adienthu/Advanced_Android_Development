@@ -36,6 +36,7 @@ import com.example.android.sunshine.app.R;
 import com.example.android.sunshine.app.Utility;
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.muzei.WeatherMuzeiSource;
+import com.example.android.sunshine.app.wearable.WearableIntentService;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -347,6 +348,8 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 updateWidgets();
                 updateMuzei();
                 notifyWeather();
+                // TODO: Uncomment when watchface UI is ready
+//                updateWearable();
             }
             Log.d(LOG_TAG, "Sync Complete. " + cVVector.size() + " Inserted");
             setLocationStatus(getContext(), LOCATION_STATUS_OK);
@@ -483,6 +486,10 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         }
     }
 
+    private void updateWearable() {
+        getContext().startService(new Intent(ACTION_DATA_UPDATED)
+                        .setClass(getContext(), WearableIntentService.class));
+    }
     /**
      * Helper method to handle insertion of a new location in the weather database.
      *

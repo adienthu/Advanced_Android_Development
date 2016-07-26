@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="com.example.android.wearable"
+<manifest package="com.example.android.sunshine.wearable"
           xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-feature android:name="android.hardware.type.watch"/>
@@ -42,6 +42,11 @@
             android:name=".SunshineWatchFaceDataService"
             android:enabled="true"
             android:exported="true">
+            <intent-filter>
+                <!-- listeners receive events that match the action and data filters -->
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/count"/>
+            </intent-filter>
         </service>
     </application>
 
