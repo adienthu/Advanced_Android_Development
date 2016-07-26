@@ -34,6 +34,8 @@ import android.support.wearable.watchface.WatchFaceStyle;
 import android.text.format.DateFormat;
 import android.text.format.DateUtils;
 import android.text.format.Time;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
 
@@ -108,6 +110,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         float mTimeYOffset;
         float mDateXOffset;
         float mDateYOffset;
+        float mLineXOffset;
+        float mLineYOffset;
 
         /**
          * Whether the display supports fewer bits for each color in ambient mode. When true, we
@@ -128,13 +132,16 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             Resources resources = SunshineWatchFace.this.getResources();
             mTimeYOffset = resources.getDimension(R.dimen.digital_y_offset);
             mDateYOffset = mTimeYOffset + 25;
-
+//            Log.d("SunshineWF", "timeY - " + mTimeYOffset + ", dateY - " + mDateYOffset);
             mBackgroundPaint = new Paint();
             mBackgroundPaint.setColor(resources.getColor(R.color.background));
 
             mTimeTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
+            mTimeTextPaint.setTextAlign(Paint.Align.CENTER);
 
             mDateTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
+            mDateTextPaint.setTextAlign(Paint.Align.CENTER);
+
             mTime = new Time();
         }
 
@@ -189,20 +196,23 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         }
 
         @Override
+        public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+            super.onSurfaceChanged(holder, format, width, height);
+            mTimeXOffset = mDateXOffset = width / 2f;
+        }
+
+        @Override
         public void onApplyWindowInsets(WindowInsets insets) {
             super.onApplyWindowInsets(insets);
 
             // Load resources that have alternate values for round watches.
             Resources resources = SunshineWatchFace.this.getResources();
             boolean isRound = insets.isRound();
-            mTimeXOffset = resources.getDimension(isRound
-                    ? R.dimen.digital_x_offset_round : R.dimen.digital_x_offset);
+
             float textSize = resources.getDimension(isRound
                     ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
             mTimeTextPaint.setTextSize(textSize);
 
-            mDateXOffset = resources.getDimension(isRound
-                    ? R.dimen.date_x_offset_round : R.dimen.date_x_offset);
             float dateTextSize = resources.getDimension(isRound
                     ? R.dimen.date_text_size_round : R.dimen.date_text_size);
             mDateTextPaint.setTextSize(dateTextSize);
@@ -278,6 +288,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, MMM dd yyyy", Locale.ENGLISH);
             String dateText = dateFormat.format(mTime.toMillis(true));
             canvas.drawText(dateText, mDateXOffset, mDateYOffset, mDateTextPaint);
+
+            // Draw line
+
         }
 
         /**
