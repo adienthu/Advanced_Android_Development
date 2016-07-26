@@ -95,6 +95,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         Paint mBackgroundPaint;
         Paint mTimeTextPaint;
         Paint mDateTextPaint;
+        Paint mLinePaint;
         boolean mAmbient;
         Time mTime;
         final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
@@ -110,7 +111,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         float mTimeYOffset;
         float mDateXOffset;
         float mDateYOffset;
-        float mLineXOffset;
+        float mLineXStart, mLineXEnd;
         float mLineYOffset;
 
         /**
@@ -132,6 +133,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             Resources resources = SunshineWatchFace.this.getResources();
             mTimeYOffset = resources.getDimension(R.dimen.digital_y_offset);
             mDateYOffset = mTimeYOffset + 25;
+            mLineYOffset = mDateYOffset + 30;
 //            Log.d("SunshineWF", "timeY - " + mTimeYOffset + ", dateY - " + mDateYOffset);
             mBackgroundPaint = new Paint();
             mBackgroundPaint.setColor(resources.getColor(R.color.background));
@@ -141,6 +143,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             mDateTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
             mDateTextPaint.setTextAlign(Paint.Align.CENTER);
+
+            mLinePaint = createLinePaint();
 
             mTime = new Time();
         }
@@ -156,6 +160,13 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             paint.setColor(textColor);
             paint.setTypeface(NORMAL_TYPEFACE);
             paint.setAntiAlias(true);
+            return paint;
+        }
+
+        private Paint createLinePaint() {
+            Paint paint = new Paint();
+            paint.setColor(Color.WHITE);
+            paint.setStrokeWidth(1);
             return paint;
         }
 
@@ -198,7 +209,13 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         @Override
         public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
             super.onSurfaceChanged(holder, format, width, height);
-            mTimeXOffset = mDateXOffset = width / 2f;
+
+            final float centerX = width / 2f;
+
+            mTimeXOffset = mDateXOffset = centerX;
+
+            mLineXStart = centerX - 30;
+            mLineXEnd = centerX + 30;
         }
 
         @Override
@@ -263,6 +280,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 case TAP_TYPE_TAP:
                     // The user has completed the tap gesture.
                     mTapCount++;
+                    // TODO: remove
                     mBackgroundPaint.setColor(resources.getColor(mTapCount % 2 == 0 ?
                             R.color.background : R.color.background2));
                     break;
@@ -290,7 +308,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             canvas.drawText(dateText, mDateXOffset, mDateYOffset, mDateTextPaint);
 
             // Draw line
-
+            canvas.drawLine(mLineXStart, mLineYOffset, mLineXEnd, mLineYOffset, mLinePaint);
         }
 
         /**
