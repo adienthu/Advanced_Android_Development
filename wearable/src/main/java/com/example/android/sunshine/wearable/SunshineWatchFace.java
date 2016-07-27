@@ -125,6 +125,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         final int[] mWeatherIds = {200, 300, 500, 511, 701, 800, 801, 802};
         int mWeatherIdIndex = 0;
 
+        final int mLightTextAlpha = 192;
+
         /**
          * Whether the display supports fewer bits for each color in ambient mode. When true, we
          * disable anti-aliasing in ambient mode.
@@ -143,7 +145,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     .build());
             Resources resources = SunshineWatchFace.this.getResources();
             mTimeYOffset = resources.getDimension(R.dimen.digital_y_offset);
-            mDateYOffset = mTimeYOffset + 25;
+            mDateYOffset = mTimeYOffset + 30;
             mLineYOffset = mDateYOffset + 30;
 //            Log.d("SunshineWF", "timeY - " + mTimeYOffset + ", dateY - " + mDateYOffset);
             mBackgroundPaint = new Paint();
@@ -153,14 +155,13 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mTimeTextPaint.setTextAlign(Paint.Align.CENTER);
 
             mDateTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
+            mDateTextPaint.setAlpha(mLightTextAlpha);
             mDateTextPaint.setTextAlign(Paint.Align.CENTER);
 
             mLinePaint = createLinePaint();
 
             mHighTempTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
-//            mHighTempTextPaint.setTextAlign(Paint.Align.LEFT);
-            mLowTempTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
-//            mLowTempTextPaint.setTextAlign(Paint.Align.LEFT);
+            mLowTempTextPaint = createLowTempTextPaint(resources.getColor(R.color.digital_text));
 
             mIconPaint = new Paint();
             mIconBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_clear);
@@ -178,6 +179,16 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             paint.setColor(textColor);
             paint.setTypeface(NORMAL_TYPEFACE);
             paint.setAntiAlias(true);
+            return paint;
+        }
+
+        private Paint createLowTempTextPaint(int textColor) {
+            Paint paint = new Paint();
+            paint.setColor(textColor);
+            final Typeface robotoThin = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Light.ttf");
+            paint.setTypeface(robotoThin);
+            paint.setAntiAlias(true);
+            paint.setAlpha(mLightTextAlpha);
             return paint;
         }
 
@@ -270,7 +281,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             final char[] chars = {'-', '2', '0', 'º'};
             mHighTempTextPaint.getTextBounds(chars, 0, chars.length, highTempBounds);
 
-            mLowTempXOffset = mHighTempXOffset + highTempBounds.right + 5;
+            mLowTempXOffset = mHighTempXOffset + highTempBounds.right + 10;
 //            Log.d("SunshineWF", "LowX - " + String.valueOf(mLowTempXOffset));
 
             // Set the y offset for the temperature texts.
@@ -363,7 +374,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             // Draw date
             SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, MMM dd yyyy", Locale.ENGLISH);
-            String dateText = dateFormat.format(mTime.toMillis(true));
+            String dateText = dateFormat.format(mTime.toMillis(true)).toUpperCase();
             canvas.drawText(dateText, mDateXOffset, mDateYOffset, mDateTextPaint);
 
             // Draw line
