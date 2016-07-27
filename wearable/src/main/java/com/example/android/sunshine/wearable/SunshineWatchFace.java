@@ -21,6 +21,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -31,11 +33,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
-import android.text.format.DateFormat;
-import android.text.format.DateUtils;
 import android.text.format.Time;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
 
@@ -98,6 +96,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         Paint mLinePaint;
         Paint mHighTempTextPaint;
         Paint mLowTempTextPaint;
+        Paint mIconPaint;
         boolean mAmbient;
         Time mTime;
         final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
@@ -118,6 +117,13 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         float mHighTempXOffset;
         float mLowTempXOffset;
         float mTemperatureYOffset;
+        float mIconXOffset;
+        float mIconYOffsetInteractive, mIconYOffsetAmbient;
+
+        Bitmap mIconBitmap;
+
+        final int[] mWeatherIds = {200, 300, 500, 511, 701, 800, 801, 802};
+        int mWeatherIdIndex = 0;
 
         /**
          * Whether the display supports fewer bits for each color in ambient mode. When true, we
@@ -155,6 +161,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 //            mHighTempTextPaint.setTextAlign(Paint.Align.LEFT);
             mLowTempTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
 //            mLowTempTextPaint.setTextAlign(Paint.Align.LEFT);
+
+            mIconPaint = new Paint();
+            mIconBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_clear);
             mTime = new Time();
         }
 
@@ -229,6 +238,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             // We only set the x offset of the high temperature text now.
             // The offset for low temp is computed in onApplyWindowInsets as it depends on the text size.
             mHighTempXOffset = centerX - 30;
+
+            mIconXOffset = centerX - 100;
         }
 
         @Override
@@ -264,7 +275,11 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             // Set the y offset for the temperature texts.
             // Y offset for texts corresponds to the baseline so we need to take the height into account as well.
-            mTemperatureYOffset = mLineYOffset + (highTempBounds.bottom-highTempBounds.top) + 30;
+            final float textHeight = highTempBounds.bottom-highTempBounds.top;
+            mTemperatureYOffset = mLineYOffset + textHeight + 30;
+
+            mIconYOffsetInteractive = mTemperatureYOffset - textHeight - 15;
+            mIconYOffsetAmbient = mIconYOffsetInteractive + 5;
         }
 
         @Override
@@ -279,14 +294,23 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             invalidate();
         }
 
+        private void updateIcon() {
+            final int resourceId = Utility.getIconResourceForWeatherCondition(mWeatherIds[mWeatherIdIndex], mAmbient);
+            mIconBitmap = BitmapFactory.decodeResource(getResources(), resourceId);
+        }
+
         @Override
         public void onAmbientModeChanged(boolean inAmbientMode) {
             super.onAmbientModeChanged(inAmbientMode);
             if (mAmbient != inAmbientMode) {
                 mAmbient = inAmbientMode;
                 if (mLowBitAmbient) {
+                    // TODO: set antialiasing for other paints as well
                     mTimeTextPaint.setAntiAlias(!inAmbientMode);
                 }
+
+                updateIcon();
+
                 invalidate();
             }
 
@@ -315,6 +339,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     // TODO: remove
                     mBackgroundPaint.setColor(resources.getColor(mTapCount % 2 == 0 ?
                             R.color.background : R.color.background2));
+
+                    mWeatherIdIndex = (mWeatherIdIndex + 1) % mWeatherIds.length;
+                    updateIcon();
                     break;
             }
             invalidate();
@@ -345,6 +372,10 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             // Draw high and low temp
             canvas.drawText("-20º", mHighTempXOffset, mTemperatureYOffset, mHighTempTextPaint);
             canvas.drawText("15º", mLowTempXOffset, mTemperatureYOffset, mLowTempTextPaint);
+
+            // Draw the icon
+            final float iconYOffset = mAmbient ? mIconYOffsetAmbient : mIconYOffsetInteractive;
+            canvas.drawBitmap(mIconBitmap, mIconXOffset, iconYOffset, mIconPaint);
         }
 
         /**
