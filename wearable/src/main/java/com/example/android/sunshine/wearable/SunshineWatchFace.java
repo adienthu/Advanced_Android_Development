@@ -91,7 +91,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         final Handler mUpdateTimeHandler = new EngineHandler(this);
         boolean mRegisteredTimeZoneReceiver = false;
         Paint mBackgroundPaint;
-        Paint mTimeTextPaint;
+        Paint mHourTextPaint;
+        Paint mMinuteTextPaint;
         Paint mDateTextPaint;
         Paint mLinePaint;
         Paint mHighTempTextPaint;
@@ -108,7 +109,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         };
         int mTapCount;
 
-        float mTimeXOffset;
+        float mHourXOffset, mMinuteXOffset;
         float mTimeYOffset;
         float mDateXOffset;
         float mDateYOffset;
@@ -151,8 +152,10 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mBackgroundPaint = new Paint();
             mBackgroundPaint.setColor(resources.getColor(R.color.background));
 
-            mTimeTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
-            mTimeTextPaint.setTextAlign(Paint.Align.CENTER);
+            mHourTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
+            mHourTextPaint.setTextAlign(Paint.Align.RIGHT);
+
+            mMinuteTextPaint = createRobotoLightTextPaint(resources.getColor(R.color.digital_text));
 
             mDateTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
             mDateTextPaint.setAlpha(mLightTextAlpha);
@@ -161,7 +164,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mLinePaint = createLinePaint();
 
             mHighTempTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
-            mLowTempTextPaint = createLowTempTextPaint(resources.getColor(R.color.digital_text));
+            mLowTempTextPaint = createRobotoLightTextPaint(resources.getColor(R.color.digital_text));
+            mLowTempTextPaint.setAlpha(mLightTextAlpha);
 
             mIconPaint = new Paint();
             mIconBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_clear);
@@ -182,13 +186,12 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             return paint;
         }
 
-        private Paint createLowTempTextPaint(int textColor) {
+        private Paint createRobotoLightTextPaint(int textColor) {
             Paint paint = new Paint();
             paint.setColor(textColor);
-            final Typeface robotoThin = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Light.ttf");
-            paint.setTypeface(robotoThin);
+            final Typeface robotoLight = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Light.ttf");
+            paint.setTypeface(robotoLight);
             paint.setAntiAlias(true);
-            paint.setAlpha(mLightTextAlpha);
             return paint;
         }
 
@@ -241,7 +244,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             final float centerX = width / 2f;
 
-            mTimeXOffset = mDateXOffset = centerX;
+            mHourXOffset = mDateXOffset = centerX;
+            mMinuteXOffset = mHourXOffset + 2;
 
             mLineXStart = centerX - 30;
             mLineXEnd = centerX + 30;
@@ -263,7 +267,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             float textSize = resources.getDimension(isRound
                     ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
-            mTimeTextPaint.setTextSize(textSize);
+            mHourTextPaint.setTextSize(textSize);
+            mMinuteTextPaint.setTextSize(textSize);
 
             float dateTextSize = resources.getDimension(isRound
                     ? R.dimen.date_text_size_round : R.dimen.date_text_size);
@@ -317,7 +322,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 mAmbient = inAmbientMode;
                 if (mLowBitAmbient) {
                     // TODO: set antialiasing for other paints as well
-                    mTimeTextPaint.setAntiAlias(!inAmbientMode);
+                    mHourTextPaint.setAntiAlias(!inAmbientMode);
                 }
 
                 updateIcon();
@@ -369,8 +374,11 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             // Draw H:MM
             mTime.setToNow();
-            String text = String.format(Locale.ENGLISH, "%d:%02d", mTime.hour, mTime.minute);
-            canvas.drawText(text, mTimeXOffset, mTimeYOffset, mTimeTextPaint);
+            String hour = String.format(Locale.ENGLISH, "%d:", mTime.hour);
+            canvas.drawText(hour, mHourXOffset, mTimeYOffset, mHourTextPaint);
+
+            String minute = String.format(Locale.ENGLISH, "%02d", mTime.minute);
+            canvas.drawText(minute, mMinuteXOffset, mTimeYOffset, mMinuteTextPaint);
 
             // Draw date
             SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, MMM dd yyyy", Locale.ENGLISH);
