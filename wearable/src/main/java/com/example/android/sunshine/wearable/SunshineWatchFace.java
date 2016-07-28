@@ -107,7 +107,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 mTime.setToNow();
             }
         };
-        int mTapCount;
 
         float mHourXOffset, mMinuteXOffset;
         float mTimeYOffset;
@@ -355,11 +354,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     break;
                 case TAP_TYPE_TAP:
                     // The user has completed the tap gesture.
-                    mTapCount++;
-                    // TODO: remove
-                    mBackgroundPaint.setColor(resources.getColor(mTapCount % 2 == 0 ?
-                            R.color.background : R.color.background2));
-
                     mWeatherIdIndex = (mWeatherIdIndex + 1) % mWeatherIds.length;
                     updateIcon();
                     break;
