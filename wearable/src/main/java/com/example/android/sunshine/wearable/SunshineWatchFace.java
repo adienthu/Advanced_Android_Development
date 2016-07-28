@@ -35,6 +35,7 @@ import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.text.format.DateFormat;
 import android.text.format.Time;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
 
@@ -132,6 +133,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         float mColonWidth;
         float mLineHeight;
         float mCenterLineLength;
+        float mIconXOffsetFromCenter;
 
         Bitmap mIconBitmap;
 
@@ -190,6 +192,17 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             mIconPaint = new Paint();
             mIconBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_clear);
+            Log.d("SunshineWF", "Icon size before scaling: " + mIconBitmap.getWidth() + ", " + mIconBitmap.getHeight());
+            Log.d("SunshineWF", "bitmap density - " + mIconBitmap.getDensity());
+            float iconSize = resources.getDimension(R.dimen.icon_size);
+            float scale = iconSize / (float)mIconBitmap.getWidth();
+            Log.d("SunshineWF", "Scale: " + scale);
+            mIconBitmap = Bitmap.createScaledBitmap(
+                    mIconBitmap,
+                    (int)(mIconBitmap.getWidth() * scale),
+                    (int)(mIconBitmap.getHeight() * scale),
+                    true);
+            Log.d("SunshineWF", "Icon size after scaling: " + mIconBitmap.getWidth() + ", " + mIconBitmap.getHeight());
 
             mCalendar = Calendar.getInstance();
             mDate = new Date();
@@ -201,6 +214,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mLineHeight = resources.getDimension(R.dimen.digital_line_height);
 
             mCenterLineLength = resources.getDimension(R.dimen.center_line_length);
+            mIconXOffsetFromCenter = resources.getDimension(R.dimen.icon_xoffset_from_center);
         }
 
         private void initFormats() {
@@ -468,17 +482,22 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             // Draw the line
             float xLineStart = (float)bounds.centerX() - mCenterLineLength/2f;
-            float yLine = mTimeYOffset + mLineHeight * 2;
+            float yLine = mTimeYOffset + mLineHeight * 1.75f;
             canvas.drawLine(xLineStart, yLine, xLineStart + mCenterLineLength, yLine, mLinePaint);
 
             // Draw the temperature
             float xTemperature = xLineStart;
-            float yTemperature = mTimeYOffset + mLineHeight * 3.5f;
+            float yTemperature = mTimeYOffset + mLineHeight * 3.25f;
             String highTemperature = "25º";
             canvas.drawText(highTemperature, xTemperature, yTemperature, mHighTempTextPaint);
             xTemperature += mHighTempTextPaint.measureText(highTemperature + " ");
             String lowTemperature = "16º";
             canvas.drawText(lowTemperature, xTemperature, yTemperature, mLowTempTextPaint);
+
+            // Draw the icon
+            float xIcon = xLineStart - mIconXOffsetFromCenter;
+            float yIcon = mTimeYOffset + mLineHeight * 2.0f;
+            canvas.drawBitmap(mIconBitmap, xIcon, yIcon, mIconPaint);
             // Draw time
 //            mTime.setToNow();
 //            String hour = String.format(Locale.ENGLISH, "%d:", mTime.hour);
