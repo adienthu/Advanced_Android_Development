@@ -10,6 +10,8 @@
     <dimen name="date_text_size">14dp</dimen>
     <dimen name="date_text_size_round">18dp</dimen>
 
+    <dimen name="center_line_length">30dp</dimen>
+
     <dimen name="temperature_text_size">24dp</dimen>
     <dimen name="temperature_text_size_round">32dp</dimen>
 </resources>

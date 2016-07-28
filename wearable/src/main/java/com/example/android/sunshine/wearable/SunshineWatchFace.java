@@ -131,6 +131,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         float mIconYOffsetInteractive, mIconYOffsetAmbient;
         float mColonWidth;
         float mLineHeight;
+        float mCenterLineLength;
 
         Bitmap mIconBitmap;
 
@@ -198,6 +199,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mPmString = resources.getString(R.string.digital_pm);
 
             mLineHeight = resources.getDimension(R.dimen.digital_line_height);
+
+            mCenterLineLength = resources.getDimension(R.dimen.center_line_length);
         }
 
         private void initFormats() {
@@ -462,6 +465,11 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             float xDate = bounds.centerX();
             float yDate = mTimeYOffset + mLineHeight;
             canvas.drawText(dateString, xDate, yDate, mDateTextPaint);
+
+            // Draw the line
+            float xLineStart = (float)bounds.centerX() - mCenterLineLength/2f;
+            float yLine = mTimeYOffset + mLineHeight * 2;
+            canvas.drawLine(xLineStart, yLine, xLineStart + mCenterLineLength, yLine, mLinePaint);
 
             // Draw time
 //            mTime.setToNow();
