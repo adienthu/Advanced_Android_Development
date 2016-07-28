@@ -471,6 +471,14 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             float yLine = mTimeYOffset + mLineHeight * 2;
             canvas.drawLine(xLineStart, yLine, xLineStart + mCenterLineLength, yLine, mLinePaint);
 
+            // Draw the temperature
+            float xTemperature = xLineStart;
+            float yTemperature = mTimeYOffset + mLineHeight * 3.5f;
+            String highTemperature = "25º";
+            canvas.drawText(highTemperature, xTemperature, yTemperature, mHighTempTextPaint);
+            xTemperature += mHighTempTextPaint.measureText(highTemperature + " ");
+            String lowTemperature = "16º";
+            canvas.drawText(lowTemperature, xTemperature, yTemperature, mLowTempTextPaint);
             // Draw time
 //            mTime.setToNow();
 //            String hour = String.format(Locale.ENGLISH, "%d:", mTime.hour);
