@@ -130,6 +130,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         float mIconXOffset;
         float mIconYOffsetInteractive, mIconYOffsetAmbient;
         float mColonWidth;
+        float mLineHeight;
 
         Bitmap mIconBitmap;
 
@@ -140,6 +141,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
         Calendar mCalendar;
         Date mDate;
+        SimpleDateFormat mDateFormat;
         /**
          * Whether the display supports fewer bits for each color in ambient mode. When true, we
          * disable anti-aliasing in ambient mode.
@@ -194,10 +196,13 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             mAmString = resources.getString(R.string.digital_am);
             mPmString = resources.getString(R.string.digital_pm);
+
+            mLineHeight = resources.getDimension(R.dimen.digital_line_height);
         }
 
         private void initFormats() {
-
+            mDateFormat = new SimpleDateFormat("EEE, MMM dd yyyy", Locale.ENGLISH);
+            mDateFormat.setCalendar(mCalendar);
         }
 
         @Override
@@ -413,6 +418,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mDate.setTime(now);
             boolean is24Hour = DateFormat.is24HourFormat(SunshineWatchFace.this);
 
+            // Draw the time. We calculate the x offset dynamically since we need to center the string.
+            // For this we compute the total width of the text, subtract it from the screen width and half the difference.
             String hourString;
             if (is24Hour) {
                 hourString = String.format(Locale.ENGLISH, "%02d", mCalendar.get(Calendar.HOUR_OF_DAY));
@@ -450,6 +457,11 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 canvas.drawText(amOrPmString, xTime, mTimeYOffset, mAmPmPaint);
             }
 
+            // Draw the date
+            String dateString = mDateFormat.format(mDate).toUpperCase();
+            float xDate = bounds.centerX();
+            float yDate = mTimeYOffset + mLineHeight;
+            canvas.drawText(dateString, xDate, yDate, mDateTextPaint);
 
             // Draw time
 //            mTime.setToNow();

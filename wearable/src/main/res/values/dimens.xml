@@ -5,6 +5,7 @@
     <dimen name="digital_y_offset">70dp</dimen>
     <dimen name="digital_am_pm_text_size">28dp</dimen>
     <dimen name="digital_am_pm_text_size_round">36dp</dimen>
+    <dimen name="digital_line_height">25dp</dimen>
 
     <dimen name="date_text_size">14dp</dimen>
     <dimen name="date_text_size_round">18dp</dimen>
