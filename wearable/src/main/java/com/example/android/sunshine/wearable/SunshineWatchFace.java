@@ -321,8 +321,12 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             if (mAmbient != inAmbientMode) {
                 mAmbient = inAmbientMode;
                 if (mLowBitAmbient) {
-                    // TODO: set antialiasing for other paints as well
                     mHourTextPaint.setAntiAlias(!inAmbientMode);
+                    mMinuteTextPaint.setAntiAlias(!inAmbientMode);
+                    mDateTextPaint.setAntiAlias(!inAmbientMode);
+                    mHighTempTextPaint.setAntiAlias(!inAmbientMode);
+                    mLowTempTextPaint.setAntiAlias(!inAmbientMode);
+                    mIconPaint.setAntiAlias(!inAmbientMode);
                 }
 
                 updateIcon();
