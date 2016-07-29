@@ -16,6 +16,7 @@
 
 package com.example.android.sunshine.wearable;
 
+import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -28,13 +29,14 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.drawable.VectorDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.text.format.DateFormat;
-import android.text.format.Time;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
@@ -134,11 +136,12 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         float mLineHeight;
         float mCenterLineLength;
         float mIconXOffsetFromCenter;
+        float mIconSize;
 
         Bitmap mIconBitmap;
 
         final int[] mWeatherIds = {200, 300, 500, 511, 701, 800, 801, 802};
-        int mWeatherIdIndex = 0;
+        int mWeatherIdIndex = 5;
 
         final int mLightTextAlpha = 192;
 
@@ -190,20 +193,10 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mLowTempTextPaint = createRobotoLightTextPaint(resources.getColor(R.color.digital_text));
             mLowTempTextPaint.setAlpha(mLightTextAlpha);
 
+            mIconSize = resources.getDimension(R.dimen.icon_size);
             mIconPaint = new Paint();
-            mIconBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_clear);
-            Log.d("SunshineWF", "Icon size before scaling: " + mIconBitmap.getWidth() + ", " + mIconBitmap.getHeight());
-            Log.d("SunshineWF", "bitmap density - " + mIconBitmap.getDensity());
-            float iconSize = resources.getDimension(R.dimen.icon_size);
-            float scale = iconSize / (float)mIconBitmap.getWidth();
-            Log.d("SunshineWF", "Scale: " + scale);
-            mIconBitmap = Bitmap.createScaledBitmap(
-                    mIconBitmap,
-                    (int)(mIconBitmap.getWidth() * scale),
-                    (int)(mIconBitmap.getHeight() * scale),
-                    true);
-            Log.d("SunshineWF", "Icon size after scaling: " + mIconBitmap.getWidth() + ", " + mIconBitmap.getHeight());
-
+            int resId = Utility.getIconResourceForWeatherCondition(mWeatherIds[mWeatherIdIndex], mAmbient);
+            mIconBitmap = createScaledBitmapForResource(resId);
             mCalendar = Calendar.getInstance();
             mDate = new Date();
             initFormats();
@@ -250,6 +243,24 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             paint.setColor(Color.WHITE);
             paint.setStrokeWidth(1);
             return paint;
+        }
+
+        private Bitmap createScaledBitmapForResource(int resId) {
+            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), resId);
+            Log.d("SunshineWF", "Icon size before scaling: " + bitmap.getWidth() + ", " + bitmap.getHeight());
+            Log.d("SunshineWF", "bitmap density - " + bitmap.getDensity());
+
+            float scale = mIconSize / (float)bitmap.getWidth();
+            Log.d("SunshineWF", "Scale: " + scale);
+            if (scale != 1.0f) {
+                bitmap = Bitmap.createScaledBitmap(
+                        bitmap,
+                        (int)(bitmap.getWidth() * scale),
+                        (int)(bitmap.getHeight() * scale),
+                        true);
+                Log.d("SunshineWF", "Icon size after scaling: " + bitmap.getWidth() + ", " + bitmap.getHeight());
+            }
+            return bitmap;
         }
 
         @Override
@@ -367,9 +378,24 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             invalidate();
         }
 
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        private Bitmap createAmbientBitmap(VectorDrawable vectorDrawable) {
+            Bitmap bitmap = Bitmap.createBitmap((int)mIconSize,
+                    (int)mIconSize, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+            vectorDrawable.draw(canvas);
+            return bitmap;
+        }
+
         private void updateIcon() {
             final int resourceId = Utility.getIconResourceForWeatherCondition(mWeatherIds[mWeatherIdIndex], mAmbient);
-            mIconBitmap = BitmapFactory.decodeResource(getResources(), resourceId);
+            if (mAmbient) {
+                VectorDrawable vectorDrawable = (VectorDrawable) getDrawable(resourceId);
+                mIconBitmap = createAmbientBitmap(vectorDrawable);
+            }else {
+                mIconBitmap = createScaledBitmapForResource(resourceId);
+            }
         }
 
         @Override
