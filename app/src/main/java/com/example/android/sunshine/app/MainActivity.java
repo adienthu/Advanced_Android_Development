@@ -108,14 +108,12 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
                 startService(intent);
             }
         }
-
-        // TODO: For testing purposes. Remove this once watchface is ready.
-        updateWearable();
     }
 
     private void updateWearable() {
         startService(new Intent(SunshineSyncAdapter.ACTION_DATA_UPDATED)
                 .setClass(this, WearableIntentService.class));
+
     }
 
     @Override
@@ -182,6 +180,9 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
                     ActivityOptionsCompat.makeSceneTransitionAnimation(this,
                             new Pair<View, String>(vh.mIconView, getString(R.string.detail_icon_transition_name)));
             ActivityCompat.startActivity(this, intent, activityOptions.toBundle());
+
+            // TODO: For testing purposes. Remove this once watchface is ready.
+            updateWearable();
         }
     }
 

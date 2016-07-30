@@ -24,7 +24,7 @@ public class WearableIntentService extends IntentService implements GoogleApiCli
     private static final String COUNT_KEY = "com.example.android.sunshine.app.count";
 
     private GoogleApiClient mGoogleApiClient;
-    private int mCount;
+    private long mCount;
 
     public WearableIntentService() {
         super("WearableIntentService");
@@ -60,14 +60,16 @@ public class WearableIntentService extends IntentService implements GoogleApiCli
                 return;
         }
 
-        Log.d(LOG_TAG, "sending count...");
-        mCount++;
+        mCount = System.currentTimeMillis();
+        Log.d(LOG_TAG, "sending count " + mCount);
+
 
         PutDataMapRequest dataMapRequest = PutDataMapRequest.create("/count");
         DataMap dataMap = dataMapRequest.getDataMap();
-        dataMap.putInt(COUNT_KEY, mCount);
-        dataMapRequest.setUrgent();
+        dataMap.putLong(COUNT_KEY, mCount);
+//        dataMapRequest.setUrgent();
         PutDataRequest dataRequest = dataMapRequest.asPutDataRequest();
+        dataRequest.setUrgent();
         PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, dataRequest);
         pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
             @Override
