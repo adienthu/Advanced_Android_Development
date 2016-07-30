@@ -108,7 +108,11 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
     private class Engine extends CanvasWatchFaceService.Engine implements DataApi.DataListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
         static final String COLON_STRING = ":";
+        static final String FORECAST_PATH = "/forecast";
         static final String COUNT_KEY = "com.example.android.sunshine.app.count";
+        static final String WEATHERID_KEY = "com.example.android.sunshine.app.weatherid";
+        static final String HIGH_TEMP_KEY = "com.example.android.sunshine.app.hightemp";
+        static final String LOW_TEMP_KEY = "com.example.android.sunshine.app.lowtemp";
 
         final Handler mUpdateTimeHandler = new EngineHandler(this);
         boolean mRegisteredTimeZoneReceiver = false;
@@ -176,6 +180,10 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 .addApi(Wearable.API)
                 .build();
 
+        int mWeatherId = mWeatherIds[mWeatherIdIndex];
+        int mHighTemp = 0;
+        int mLowTemp = 0;
+
         @Override
         public void onCreate(SurfaceHolder holder) {
             super.onCreate(holder);
@@ -214,7 +222,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             mIconSize = resources.getDimension(R.dimen.icon_size);
             mIconPaint = new Paint();
-            int resId = Utility.getIconResourceForWeatherCondition(mWeatherIds[mWeatherIdIndex], mAmbient);
+            int resId = Utility.getIconResourceForWeatherCondition(mWeatherId, mAmbient);
             mIconBitmap = createScaledBitmapForResource(resId);
             mCalendar = Calendar.getInstance();
             mDate = new Date();
@@ -418,7 +426,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         }
 
         private void updateIcon() {
-            final int resourceId = Utility.getIconResourceForWeatherCondition(mWeatherIds[mWeatherIdIndex], mAmbient);
+            final int resourceId = Utility.getIconResourceForWeatherCondition(mWeatherId, mAmbient);
             if (mAmbient) {
                 VectorDrawable vectorDrawable = (VectorDrawable) getDrawable(resourceId);
                 mIconBitmap = createAmbientBitmap(vectorDrawable);
@@ -543,10 +551,10 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             // Draw the temperature
             float xTemperature = xLineStart;
             float yTemperature = mTimeYOffset + mLineHeight * 3.25f;
-            String highTemperature = "25º";
+            String highTemperature = mHighTemp + "º";
             canvas.drawText(highTemperature, xTemperature, yTemperature, mHighTempTextPaint);
             xTemperature += mHighTempTextPaint.measureText(highTemperature + " ");
-            String lowTemperature = "16º";
+            String lowTemperature = mLowTemp + "º";
             canvas.drawText(lowTemperature, xTemperature, yTemperature, mLowTempTextPaint);
 
             // Draw the icon
@@ -632,9 +640,12 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             Log.d(TAG, "onDataChanged: " + dataEventBuffer);
             for (DataEvent dataEvent : dataEventBuffer) {
                 DataItem dataItem = dataEvent.getDataItem();
-                if (dataItem.getUri().getPath().equals("/count")) {
+                if (dataItem.getUri().getPath().equals(FORECAST_PATH)) {
                     DataMap dataMap = DataMapItem.fromDataItem(dataItem).getDataMap();
-                    Log.d(TAG, "count: " + dataMap.getLong(COUNT_KEY));
+                    mWeatherId = dataMap.getInt(WEATHERID_KEY);
+                    mHighTemp = dataMap.getInt(HIGH_TEMP_KEY);
+                    mLowTemp = dataMap.getInt(LOW_TEMP_KEY);
+                    Log.d(TAG, String.format("New forecast: %d %d %d", mWeatherId, mHighTemp, mLowTemp));
                 }
             }
         }
