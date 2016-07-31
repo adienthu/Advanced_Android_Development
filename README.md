@@ -13,9 +13,9 @@ Android Support GridLayout 22.2.0
 Android Support CardView 22.2.0
 Android Support Design 22.2.0
 Android Support RecyclerView 22.2.0
-Google Play Services GCM 7.0.0
+Google Play Services GCM 7.5.0
 BumpTech Glide 3.5.2
-
+Google Play Services Wearable 9.0.1
 
 Getting Started
 ---------------
@@ -33,7 +33,7 @@ submitting a pull request through GitHub. Please see CONTRIBUTING.md for more de
 
 Credits
 -------
-Weather icons used in the watchface in ambient mode was sourced from [Flaticon](http://www.flaticon.com) under CC 3.0 BY license.
+Weather icons used in the watchface in ambient mode were sourced from [Flaticon](http://www.flaticon.com) under CC 3.0 BY license.
 
 License
 -------
