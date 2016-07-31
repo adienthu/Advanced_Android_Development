@@ -109,7 +109,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
     private class Engine extends CanvasWatchFaceService.Engine implements DataApi.DataListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
         static final String COLON_STRING = ":";
         static final String FORECAST_PATH = "/forecast";
-        static final String COUNT_KEY = "com.example.android.sunshine.app.count";
         static final String WEATHERID_KEY = "com.example.android.sunshine.app.weatherid";
         static final String HIGH_TEMP_KEY = "com.example.android.sunshine.app.hightemp";
         static final String LOW_TEMP_KEY = "com.example.android.sunshine.app.lowtemp";
@@ -181,8 +180,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 .build();
 
         int mWeatherId = mWeatherIds[mWeatherIdIndex];
-        int mHighTemp = 0;
-        int mLowTemp = 0;
+        String mHighTemp;
+        String mLowTemp;
 
         @Override
         public void onCreate(SurfaceHolder holder) {
@@ -549,13 +548,16 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             canvas.drawLine(xLineStart, yLine, xLineStart + mCenterLineLength, yLine, mLinePaint);
 
             // Draw the temperature
-            float xTemperature = xLineStart;
-            float yTemperature = mTimeYOffset + mLineHeight * 3.25f;
-            String highTemperature = mHighTemp + "º";
-            canvas.drawText(highTemperature, xTemperature, yTemperature, mHighTempTextPaint);
-            xTemperature += mHighTempTextPaint.measureText(highTemperature + " ");
-            String lowTemperature = mLowTemp + "º";
-            canvas.drawText(lowTemperature, xTemperature, yTemperature, mLowTempTextPaint);
+            if (mHighTemp!=null && mLowTemp!=null) {
+                float xTemperature = xLineStart;
+                float yTemperature = mTimeYOffset + mLineHeight * 3.25f;
+                String highTemperature = mHighTemp;
+                canvas.drawText(highTemperature, xTemperature, yTemperature, mHighTempTextPaint);
+                xTemperature += mHighTempTextPaint.measureText(highTemperature + " ");
+                String lowTemperature = mLowTemp;
+                canvas.drawText(lowTemperature, xTemperature, yTemperature, mLowTempTextPaint);
+            }
+
 
             // Draw the icon
             float xIcon = xLineStart - mIconXOffsetFromCenter;
@@ -643,9 +645,11 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 if (dataItem.getUri().getPath().equals(FORECAST_PATH)) {
                     DataMap dataMap = DataMapItem.fromDataItem(dataItem).getDataMap();
                     mWeatherId = dataMap.getInt(WEATHERID_KEY);
-                    mHighTemp = dataMap.getInt(HIGH_TEMP_KEY);
-                    mLowTemp = dataMap.getInt(LOW_TEMP_KEY);
-                    Log.d(TAG, String.format("New forecast: %d %d %d", mWeatherId, mHighTemp, mLowTemp));
+                    mHighTemp = dataMap.getString(HIGH_TEMP_KEY);
+                    mLowTemp = dataMap.getString(LOW_TEMP_KEY);
+                    Log.d(TAG, String.format("New forecast: %d %s %s", mWeatherId, mHighTemp, mLowTemp));
+                    updateIcon();
+                    invalidate();
                 }
             }
         }
