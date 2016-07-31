@@ -139,18 +139,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             }
         };
 
-        float mHourXOffset, mMinuteXOffset;
-        float mTimeXOffset;
         float mTimeYOffset;
-        float mDateXOffset;
-        float mDateYOffset;
-        float mLineXStart, mLineXEnd;
-        float mLineYOffset;
-        float mHighTempXOffset;
-        float mLowTempXOffset;
-        float mTemperatureYOffset;
-        float mIconXOffset;
-        float mIconYOffsetInteractive, mIconYOffsetAmbient;
         float mColonWidth;
         float mLineHeight;
         float mCenterLineLength;
@@ -158,9 +147,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         float mIconSize;
 
         Bitmap mIconBitmap;
-
-        final int[] mWeatherIds = {200, 300, 500, 511, 701, 800, 801, 802};
-        int mWeatherIdIndex = 5;
 
         final int mLightTextAlpha = 192;
 
@@ -191,16 +177,13 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             super.onCreate(holder);
 
             setWatchFaceStyle(new WatchFaceStyle.Builder(SunshineWatchFace.this)
-                    .setCardPeekMode(WatchFaceStyle.PEEK_MODE_VARIABLE)
+                    .setCardPeekMode(WatchFaceStyle.PEEK_MODE_SHORT)
                     .setBackgroundVisibility(WatchFaceStyle.BACKGROUND_VISIBILITY_INTERRUPTIVE)
                     .setShowSystemUiTime(false)
-                    .setAcceptsTapEvents(true)
+                    .setAcceptsTapEvents(false)
                     .build());
             Resources resources = SunshineWatchFace.this.getResources();
 
-//            mDateYOffset = mTimeYOffset + 30;
-//            mLineYOffset = mDateYOffset + 30;
-//            Log.d("SunshineWF", "timeY - " + mTimeYOffset + ", dateY - " + mDateYOffset);
             mBackgroundPaint = new Paint();
             mBackgroundPaint.setColor(resources.getColor(R.color.background));
 
@@ -275,18 +258,13 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
         private Bitmap createScaledBitmapForResource(int resId) {
             Bitmap bitmap = BitmapFactory.decodeResource(getResources(), resId);
-            Log.d("SunshineWF", "Icon size before scaling: " + bitmap.getWidth() + ", " + bitmap.getHeight());
-            Log.d("SunshineWF", "bitmap density - " + bitmap.getDensity());
-
             float scale = mIconSize / (float)bitmap.getWidth();
-            Log.d("SunshineWF", "Scale: " + scale);
             if (scale != 1.0f) {
                 bitmap = Bitmap.createScaledBitmap(
                         bitmap,
                         (int)(bitmap.getWidth() * scale),
                         (int)(bitmap.getHeight() * scale),
                         true);
-                Log.d("SunshineWF", "Icon size after scaling: " + bitmap.getWidth() + ", " + bitmap.getHeight());
             }
             return bitmap;
         }
@@ -336,25 +314,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         }
 
         @Override
-        public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-            super.onSurfaceChanged(holder, format, width, height);
-
-            final float centerX = width / 2f;
-
-            mHourXOffset = mDateXOffset = centerX;
-            mMinuteXOffset = mHourXOffset + 2;
-
-            mLineXStart = centerX - 30;
-            mLineXEnd = centerX + 30;
-
-            // We only set the x offset of the high temperature text now.
-            // The offset for low temp is computed in onApplyWindowInsets as it depends on the text size.
-            mHighTempXOffset = centerX - 30;
-
-            mIconXOffset = centerX - 100;
-        }
-
-        @Override
         public void onApplyWindowInsets(WindowInsets insets) {
             super.onApplyWindowInsets(insets);
 
@@ -382,25 +341,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             float temperatureTextSize = resources.getDimension(isRound
                     ? R.dimen.temperature_text_size_round : R.dimen.temperature_text_size);
             mHighTempTextPaint.setTextSize(temperatureTextSize);
-//            Log.d("SunshineWF", "High temp textsize set");
             mLowTempTextPaint.setTextSize(temperatureTextSize);
-
-            // The x-offset of the low temperature text should be calculated relative to the
-            // high temperature text. For this we need to compute the max width that the high temp box can grow to.
-            Rect highTempBounds = new Rect();
-            final char[] chars = {'-', '2', '0', 'º'};
-            mHighTempTextPaint.getTextBounds(chars, 0, chars.length, highTempBounds);
-
-            mLowTempXOffset = mHighTempXOffset + highTempBounds.right + 10;
-//            Log.d("SunshineWF", "LowX - " + String.valueOf(mLowTempXOffset));
-
-            // Set the y offset for the temperature texts.
-            // Y offset for texts corresponds to the baseline so we need to take the height into account as well.
-            final float textHeight = highTempBounds.bottom-highTempBounds.top;
-            mTemperatureYOffset = mLineYOffset + textHeight + 30;
-
-            mIconYOffsetInteractive = mTemperatureYOffset - textHeight - 15;
-            mIconYOffsetAmbient = mIconYOffsetInteractive + 5;
 
             mColonWidth = mColonPaint.measureText(COLON_STRING);
         }
@@ -463,29 +404,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             // Whether the timer should be running depends on whether we're visible (as well as
             // whether we're in ambient mode), so we may need to start or stop the timer.
             updateTimer();
-        }
-
-        /**
-         * Captures tap event (and tap type) and toggles the background color if the user finishes
-         * a tap.
-         */
-        @Override
-        public void onTapCommand(int tapType, int x, int y, long eventTime) {
-            Resources resources = SunshineWatchFace.this.getResources();
-            switch (tapType) {
-                case TAP_TYPE_TOUCH:
-                    // The user has started touching the screen.
-                    break;
-                case TAP_TYPE_TOUCH_CANCEL:
-                    // The user has started a different gesture or otherwise cancelled the tap.
-                    break;
-                case TAP_TYPE_TAP:
-                    // The user has completed the tap gesture.
-                    mWeatherIdIndex = (mWeatherIdIndex + 1) % mWeatherIds.length;
-                    updateIcon();
-                    break;
-            }
-            invalidate();
         }
 
         @Override
@@ -570,29 +488,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 float yIcon = mTimeYOffset + mLineHeight * 2.0f;
                 canvas.drawBitmap(mIconBitmap, xIcon, yIcon, mIconPaint);
             }
-            // Draw time
-//            mTime.setToNow();
-//            String hour = String.format(Locale.ENGLISH, "%d:", mTime.hour);
-//            canvas.drawText(hour, mHourXOffset, mTimeYOffset, mHourTextPaint);
-//
-//            String minute = String.format(Locale.ENGLISH, "%02d", mTime.minute);
-//            canvas.drawText(minute, mMinuteXOffset, mTimeYOffset, mMinuteTextPaint);
-
-//            // Draw date
-//            SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, MMM dd yyyy", Locale.ENGLISH);
-//            String dateText = dateFormat.format(mTime.toMillis(true)).toUpperCase();
-//            canvas.drawText(dateText, mDateXOffset, mDateYOffset, mDateTextPaint);
-//
-//            // Draw line
-//            canvas.drawLine(mLineXStart, mLineYOffset, mLineXEnd, mLineYOffset, mLinePaint);
-//
-//            // Draw high and low temp
-//            canvas.drawText("-20º", mHighTempXOffset, mTemperatureYOffset, mHighTempTextPaint);
-//            canvas.drawText("15º", mLowTempXOffset, mTemperatureYOffset, mLowTempTextPaint);
-//
-//            // Draw the icon
-//            final float iconYOffset = mAmbient ? mIconYOffsetAmbient : mIconYOffsetInteractive;
-//            canvas.drawBitmap(mIconBitmap, mIconXOffset, iconYOffset, mIconPaint);
         }
 
         /**
@@ -642,7 +537,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                             mWeatherId = dataMap.getInt(WEATHERID_KEY);
                             mHighTemp = dataMap.getString(HIGH_TEMP_KEY);
                             mLowTemp = dataMap.getString(LOW_TEMP_KEY);
-                            Log.d(TAG, String.format("New forecast: %d %s %s", mWeatherId, mHighTemp, mLowTemp));
                             updateIcon();
                             invalidate();
                         }
@@ -672,7 +566,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     mWeatherId = dataMap.getInt(WEATHERID_KEY);
                     mHighTemp = dataMap.getString(HIGH_TEMP_KEY);
                     mLowTemp = dataMap.getString(LOW_TEMP_KEY);
-                    Log.d(TAG, String.format("New forecast: %d %s %s", mWeatherId, mHighTemp, mLowTemp));
                     updateIcon();
                     invalidate();
                 }
