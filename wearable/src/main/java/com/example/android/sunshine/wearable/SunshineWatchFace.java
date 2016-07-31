@@ -179,7 +179,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 .addApi(Wearable.API)
                 .build();
 
-        int mWeatherId = mWeatherIds[mWeatherIdIndex];
+        int mWeatherId = 0;
         String mHighTemp;
         String mLowTemp;
 
@@ -221,8 +221,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             mIconSize = resources.getDimension(R.dimen.icon_size);
             mIconPaint = new Paint();
-            int resId = Utility.getIconResourceForWeatherCondition(mWeatherId, mAmbient);
-            mIconBitmap = createScaledBitmapForResource(resId);
+
             mCalendar = Calendar.getInstance();
             mDate = new Date();
             initFormats();
@@ -426,6 +425,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
         private void updateIcon() {
             final int resourceId = Utility.getIconResourceForWeatherCondition(mWeatherId, mAmbient);
+            if (resourceId == -1) return;
+
             if (mAmbient) {
                 VectorDrawable vectorDrawable = (VectorDrawable) getDrawable(resourceId);
                 mIconBitmap = createAmbientBitmap(vectorDrawable);
@@ -560,9 +561,11 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
 
             // Draw the icon
-            float xIcon = xLineStart - mIconXOffsetFromCenter;
-            float yIcon = mTimeYOffset + mLineHeight * 2.0f;
-            canvas.drawBitmap(mIconBitmap, xIcon, yIcon, mIconPaint);
+            if (mIconBitmap != null) {
+                float xIcon = xLineStart - mIconXOffsetFromCenter;
+                float yIcon = mTimeYOffset + mLineHeight * 2.0f;
+                canvas.drawBitmap(mIconBitmap, xIcon, yIcon, mIconPaint);
+            }
             // Draw time
 //            mTime.setToNow();
 //            String hour = String.format(Locale.ENGLISH, "%d:", mTime.hour);

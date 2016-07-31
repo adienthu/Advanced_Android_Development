@@ -1,6 +1,7 @@
 package com.example.android.sunshine.app.wearable;
 
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -10,6 +11,7 @@ import android.util.Log;
 
 import com.example.android.sunshine.app.Utility;
 import com.example.android.sunshine.app.data.WeatherContract;
+import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -50,6 +52,11 @@ public class WearableIntentService extends IntentService implements GoogleApiCli
 
     public WearableIntentService(String name) {
         super(name);
+    }
+
+    public static void updateWearable(Context context) {
+        context.startService(new Intent(SunshineSyncAdapter.ACTION_DATA_UPDATED)
+                .setClass(context, WearableIntentService.class));
     }
 
     @Override

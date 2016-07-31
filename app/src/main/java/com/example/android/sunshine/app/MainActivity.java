@@ -33,7 +33,6 @@ import android.view.View;
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.gcm.RegistrationIntentService;
 import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
-import com.example.android.sunshine.app.wearable.WearableIntentService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 
@@ -110,12 +109,6 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
         }
     }
 
-    private void updateWearable() {
-        startService(new Intent(SunshineSyncAdapter.ACTION_DATA_UPDATED)
-                .setClass(this, WearableIntentService.class));
-
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -144,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
         super.onResume();
         String location = Utility.getPreferredLocation( this );
         // update the location in our second pane using the fragment manager
-            if (location != null && !location.equals(mLocation)) {
+        if (location != null && !location.equals(mLocation)) {
             ForecastFragment ff = (ForecastFragment)getSupportFragmentManager().findFragmentById(R.id.fragment_forecast);
             if ( null != ff ) {
                 ff.onLocationChanged();
@@ -180,9 +173,6 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
                     ActivityOptionsCompat.makeSceneTransitionAnimation(this,
                             new Pair<View, String>(vh.mIconView, getString(R.string.detail_icon_transition_name)));
             ActivityCompat.startActivity(this, intent, activityOptions.toBundle());
-
-            // TODO: For testing purposes. Remove this once watchface is ready.
-            updateWearable();
         }
     }
 
