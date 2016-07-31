@@ -36,7 +36,7 @@ import com.example.android.sunshine.app.R;
 import com.example.android.sunshine.app.Utility;
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.muzei.WeatherMuzeiSource;
-import com.example.android.sunshine.app.wearable.WearableIntentService;
+import com.example.android.sunshine.app.wearable.WearableUpdateTask;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -486,7 +486,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private void updateWearable() {
-        WearableIntentService.updateWearable(getContext());
+        new WearableUpdateTask(getContext()).execute();
     }
     /**
      * Helper method to handle insertion of a new location in the weather database.

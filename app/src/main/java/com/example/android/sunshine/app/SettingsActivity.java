@@ -27,7 +27,7 @@ import android.preference.PreferenceManager;
 
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
-import com.example.android.sunshine.app.wearable.WearableIntentService;
+import com.example.android.sunshine.app.wearable.WearableUpdateTask;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings.
@@ -140,7 +140,7 @@ public class SettingsActivity extends PreferenceActivity
         } else if ( key.equals(getString(R.string.pref_units_key)) ) {
             // units have changed. update lists of weather entries accordingly
             getContentResolver().notifyChange(WeatherContract.WeatherEntry.CONTENT_URI, null);
-            WearableIntentService.updateWearable(getApplicationContext());
+            new WearableUpdateTask(getApplicationContext()).execute();
         } else if ( key.equals(getString(R.string.pref_location_status_key)) ) {
             // our location status has changed.  Update the summary accordingly
             Preference locationPreference = findPreference(getString(R.string.pref_location_key));
