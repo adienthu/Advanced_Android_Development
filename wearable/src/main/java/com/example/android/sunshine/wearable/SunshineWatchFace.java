@@ -45,10 +45,13 @@ import android.view.WindowInsets;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataItemBuffer;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.Wearable;
@@ -305,6 +308,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
                 if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
                     Wearable.DataApi.removeListener(mGoogleApiClient, this);
+//                    Wearable.CapabilityApi.removeLocalCapability(mGoogleApiClient, FORECAST_CAPABILITY);
                     mGoogleApiClient.disconnect();
                 }
             }
@@ -627,7 +631,25 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         public void onConnected(@Nullable Bundle bundle) {
             Log.d(TAG, "onConnected: " + bundle);
             Wearable.DataApi.addListener(mGoogleApiClient, Engine.this);
-//            updateConfigDataItemAndUiOnStartup();
+
+            PendingResult<DataItemBuffer> dataItems = Wearable.DataApi.getDataItems(mGoogleApiClient);
+            dataItems.setResultCallback(new ResultCallback<DataItemBuffer>() {
+                @Override
+                public void onResult(@NonNull DataItemBuffer dataItems) {
+                    for (DataItem dataItem : dataItems) {
+                        if (dataItem.getUri().getPath().equals(FORECAST_PATH)) {
+                            DataMap dataMap = DataMapItem.fromDataItem(dataItem).getDataMap();
+                            mWeatherId = dataMap.getInt(WEATHERID_KEY);
+                            mHighTemp = dataMap.getString(HIGH_TEMP_KEY);
+                            mLowTemp = dataMap.getString(LOW_TEMP_KEY);
+                            Log.d(TAG, String.format("New forecast: %d %s %s", mWeatherId, mHighTemp, mLowTemp));
+                            updateIcon();
+                            invalidate();
+                        }
+                    }
+                    dataItems.release();
+                }
+            });
         }
 
         @Override

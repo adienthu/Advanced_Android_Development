@@ -186,9 +186,6 @@
             android:name=".wearable.WearableIntentService"
             android:enabled="true"
             android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.android.apps.muzei.api.MuzeiArtSource"/>
-            </intent-filter>
         </service>
     </application>
 
